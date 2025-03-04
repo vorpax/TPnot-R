@@ -1,0 +1,5 @@
+"0","Data=read.csv(file=""./abalone/abalone.data"")"
+"0","Data = Data[1:100,2:9]"
+"0","#head(Data)"
+"0","Data = rename(Data, ""Longueur""=`X0.455`, ""Diamètre"" = `X0.365`, ""Hauteur"" = `X0.095`, ""Poids_Total""=`X0.514`, ""Poids_Décortiqué""=`X0.2245`,""Poids_Viscères""=`X0.101`,""Poids_Coquille""=`X0.15`, ""Anneaux""=`X15`)"
+"0","head(Data)"
