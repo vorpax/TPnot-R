@@ -1,0 +1,56 @@
+---
+title: "Rendu_titouan"
+output: html_document
+---
+
+nom1_nom2.Rmd
+
+nom1_nom2.html ou et .pdf
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(factoextra)
+library(dplyr)
+```
+
+```{r}
+Data=read.csv(file="./abalone/abalone.data")
+Data = Data[1:100,2:9]
+#head(Data)
+Data = rename(Data, "Longueur"=`X0.455`, "Diamètre" = `X0.365`, "Hauteur" = `X0.095`, "Poids_Total"=`X0.514`, "Poids_Décortiqué"=`X0.2245`,"Poids_Viscères"=`X0.101`,"Poids_Coquille"=`X0.15`, "Anneaux"=`X15`)
+head(Data)
+```
+
+1) On centre dans un premier temps les variables de notre jeu de données. 
+Pour cela, on commence par calculer les moyennes de chaque colonne, que l'on met dans un vecteur ligne, on répète cette ligne n fois pour obtenir une matrice de la même taille que notre jeu de données, et on soustrait cette matrice à notre jeu de données initial.
+```{r centrer}
+moyennes = colMeans(Data)
+n = nrow(Data)
+p = ncol(Data)
+moyennes = matrix(rep(moyennes, each=n))
+Data_centre = Data - moyennes
+head(Data_centre)
+```
+2) On cherche ici à réduire notre data set, pour cela on calcule l'écart type des données de chaque colonne (argument 2), en appliquant la fonction sd à chaque colonne de notre jeu de données. On répète ensuite cette ligne n fois pour obtenir une matrice de la même taille que notre jeu de données, et on divise notre jeu de données initial par cette matrice.
+
+```{r réduire}
+
+ecart_type = apply(Data_centre, 2, sd)
+ecart_type = matrix(rep(ecart_type, each=n))
+Data_centre_reduit = Data_centre/ecart_type
+head(Data_centre_reduit)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
