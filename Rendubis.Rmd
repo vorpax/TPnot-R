@@ -3,6 +3,7 @@ title: "Rendu"
 output: html_document
 ---
 
+
 Format pr le rendu : nom1_nom2.Rmd nom1_nom2.html ou et .pdf
 
 Saucisse
