@@ -1,0 +1,58 @@
+---
+title: "Rendu"
+output: html_document
+---
+
+Format pr le rendu : nom1_nom2.Rmd nom1_nom2.html ou et .pdf
+
+Saucisse
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(factoextra)
+library(dplyr)
+```
+
+```{r}
+Data=read.csv(file="./abalone/abalone.data")
+Data = Data[1:100,2:9]
+#head(Data)
+Data = rename(Data, "Longueur"=`X0.455`, "Diamètre" = `X0.365`, "Hauteur" = `X0.095`, "Poids_Total"=`X0.514`, "Poids_Décortiqué"=`X0.2245`,"Poids_Viscères"=`X0.101`,"Poids_Coquille"=`X0.15`, "Anneaux"=`X15`)
+head(Data)
+```
+
+```{r}
+#?colMeans
+
+Saucisse <- colMeans(Data,na.rm=FALSE)
+#Saucisse["Longueur"]
+#stypeof(Saucisse)
+#?mean
+#?list
+#unlist(Data)
+#?summary
+summary(Data)
+Saucisse
+summary(Saucisse)
+#BonjourJeSuisNicolasSarkozy <- colSds(Saucisse)
+
+?double
+
+rep(Saucisse,100)
+
+MeansSquared <- colMeans(Data^2)
+KH <- MeansSquared - Saucisse^2
+?rep
+?rep
+
+KH <- sqrt(KH)
+typeof(KH)
+KH
+Data1 <- Data - rep(Saucisse,times=100)
+summary(Data1)
+Data2 <- Data1/rep(KH,times = 100)
+
+summary(Data2)
+
+```
