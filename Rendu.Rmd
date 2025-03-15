@@ -3,7 +3,6 @@ title: "Rendu_titouan"
 output: html_document
 ---
 
-
 nom1_nom2.Rmd
 
 nom1_nom2.html ou et .pdf
@@ -66,6 +65,9 @@ distance <- function(vecteur) {
   sum(vecteur^2)
   
 }
+sum(apply(Data_centre_reduit,1,distance))/ncol(Data_centre_reduit)
+sum(apply(Data_centre_reduit,1,distance))/nrow(Data_centre_reduit)
+
 
 ```
 
@@ -78,8 +80,8 @@ length(list(dist(Data,method="euclidean")))
 
 sum(dist(Data,method="euclidean"))/length(Data)
 
-sum(apply(Data_centre_reduit,2,distance))/nrow(Data_centre_reduit)
-
+sum(apply(Data_centre_reduit,2,distance))/(nrow(Data_centre_reduit)-1)
+nrow(Data_centre_reduit)
 
 sum(apply(Data_centre, 2, dist)^2)
 sum(apply(Data,2,dist)^2)
@@ -89,34 +91,54 @@ sum(inertie)
 
 ```
 
+```{r}
+
+?prcomp
+pca <- prcomp(Data_centre_reduit, scale = TRUE)
+pca
 
 
+```
 
 
+```{r}
 
 
+sorted_eigenvalues  <- sort(eigen_decomp$values, decreasing = TRUE)
+sorted_eigenvalues
+
+sorted_eigenvalues/sum(sorted_eigenvalues)
+cumsum(sorted_eigenvalues/sum(sorted_eigenvalues))
+
+plot(cumsum(sorted_eigenvalues/sum(sorted_eigenvalues)), xlab = "Nombre de composantes", ylab = "Pourcentage d'inertie expliquée", type = "b")
+
+plot(sorted_eigenvalues, xlab = "Composantes", ylab = "Valeurs propres", type = "b")
 
 
+```
+
+```{r}
+?prcomp
+acp <- prcomp(Data_centre_reduit, scale = TRUE)
+fviz_eig(pca, addlabels = TRUE, ylim = c(0, 50))
+
+axeX <- acp$x[,1]
+axeY <- acp$x[,2]
+
+plot(axeX, axeY, xlab = "Axe 1", ylab = "Axe 2", main = "ACP", col = "blue");grid()
+
+```
 
 
+```{r}
+# Cercle des corrélations
+fviz_pca_var(pca, col.var = "black")
+?fviz_pca_var
+
+# Graphe avec variables sur le cercle des corrélations
+fviz_pca_var(pca, col.var = "black", gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), repel = TRUE)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+```
 
 
