@@ -1,11 +1,9 @@
 ---
 title: "Rendu_titouan"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
-
-nom1_nom2.Rmd
-
-nom1_nom2.html ou et .pdf
 
 ```{r}
 knitr::opts_chunk$set(echo = TRUE)
@@ -22,7 +20,8 @@ Data = rename(Data, "Longueur"=`X0.455`, "Diamètre" = `X0.365`, "Hauteur" = `X0
 head(Data)
 ```
 
-1) On centre dans un premier temps les variables de notre jeu de données. 
+# Question 1
+On centre dans un premier temps les variables de notre jeu de données. 
 Pour cela, on commence par calculer les moyennes de chaque colonne, que l'on met dans un vecteur ligne, on répète cette ligne n fois pour obtenir une matrice de la même taille que notre jeu de données, et on soustrait cette matrice à notre jeu de données initial.
 ```{r centrer}
 moyennes = colMeans(Data)
@@ -32,7 +31,8 @@ moyennes = matrix(rep(moyennes, each=n))
 Data_centre = Data - moyennes
 head(Data_centre)
 ```
-2) On cherche ici à réduire notre data set, pour cela on calcule l'écart type des données de chaque colonne (argument 2), en appliquant la fonction sd à chaque colonne de notre jeu de données. On répète ensuite cette ligne n fois pour obtenir une matrice de la même taille que notre jeu de données, et on divise notre jeu de données initial par cette matrice.
+# Question 2
+On cherche ici à réduire notre data set, pour cela on calcule l'écart type des données de chaque colonne (argument 2), en appliquant la fonction sd à chaque colonne de notre jeu de données. On répète ensuite cette ligne n fois pour obtenir une matrice de la même taille que notre jeu de données, et on divise notre jeu de données initial par cette matrice.
 
 ```{r réduire}
 
@@ -41,16 +41,125 @@ ecart_type = matrix(rep(ecart_type, each=n))
 Data_centre_reduit = Data_centre/ecart_type
 head(Data_centre_reduit)
 ```
+les données sont alors de l'ordre de grandeur de 1 (entre -2 et 2 environ)
 
 
+# Question 3
+On stocke ensuite la matrice de covariance normé dans hatSigma
+
+```{r stocker_covariance}
+hatSigma <- cov(Data_centre_reduit)
+hatSigma
+
+```
+
+# Question 4
+On diagonalises la matrice 
+
+```{r diagonalisation}
+eigen_hatSigma <- eigen(hatSigma)
+eigen_hatSigma$values    # Valeurs propres
+eigen_hatSigma$vectors   # Vecteurs propres
+
+```
+
+# Question 5
+On sait que l'inertie totale de données centrée réduite est égale à la somme des valeurs propres de la matrice de covariance normée. Et cela vaut le nombre de variables, soit, ici, 8.
+
+On calcule alors de 2 manière: <br>
+ - D'abord avec la formule de référence : Calculer la moyenne des carrés des observations pour chaque variable.<br>
+ - Ensuite en sommant les valeurs propres de la matrice de covariance normée.
+
+```{r inertie}
+#Avec la formule
+inertie_total1 <- sum(apply(Data_centre_reduit, 2, function(x) sum(x^2))) / (n - 1)
+#Avec les valeurs propres
+inertie_total2 <- sum(eigen_hatSigma$values)
+
+inertie_total1
+inertie_total2
+```
+On trouve bien comme attendu 8 dans les deux cas
 
 
+# Question 6
+On trace, en fonction de i (la position dans le vecteur), le pourcentage de l’inertie expliqué par les i premières valeurs propres ainsi que celui expliqué par la i-ème valeur propre.
+
+```{r pourcentage_inertie}
+pourcentages <- eigen_hatSigma$values / inertie_total1 * 100
+pourcentage_cumule <- cumsum(pourcentages)
+
+#On définit la fenêtre pour avoir 2 graphiques
+par(mfrow = c(1, 2))
+
+# Graphe 1 : inertie de la i-ème composante
+plot(1:length(pourcentages), pourcentages, type="b", pch=19, col="red",
+     xlab="i (nombre de composantes)", ylab="Pourcentage d'inertie",
+     main="Inertie i-ème")
+
+# Graphe 2 : inertie cumulée
+plot(1:length(pourcentages), pourcentage_cumule, type="b", pch=19, col="blue",
+     xlab="i (nombre de composantes)", ylab="Pourcentage d'inertie cumulée",
+     main="Inertie cumulée")
 
 
+```
 
 
+# Question 7
+On réalise une analyse en composantes principales (ACP) sur le jeu de données préalablement centré et réduit. On trace la projection des individus sur le plan factoriel défini par les deux premières composantes (axes 1 et 2), en affichant les noms des individus et en appliquant la fonction de repulsion pour éviter le chevauchement des étiquettes. <br>
+On identifie également les individus les plus représentatifs des axes 1 et 2 en calculant les valeurs absolues maximales des scores des individus sur ces axes.
+```{r plan_factoriel}
+acp_resultat <- prcomp(Data_centre_reduit, scale = TRUE) #contient scores des individus sur les différentes composantes principales
+
+# Tracé du plan factoriel (Axes 1 et 2)
+fviz_pca_ind(acp_resultat, axes = c(1,2), 
+             label = "ind",  
+             repel = TRUE,    
+             title = "Projection des individus sur le plan factoriel (Axes 1 et 2)")+
+  labs(title = "Projection des individus sur le plan factoriel", x = "Dimension 1", y = "Dimension 2") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+# Identifier les individus les plus représentatifs des axes 1 et 2
+coord_individus <- acp_resultat$x
+ind_max_axe1 <- rownames(coord_individus)[which.max(abs(coord_individus[,1]))]
+ind_max_axe2 <- rownames(coord_individus)[which.max(abs(coord_individus[,2]))]
+
+# Affichage des résultats
+cat("Individu le plus représentatif de l'axe 1 :", ind_max_axe1, "\n")
+cat("Individu le plus représentatif de l'axe 2 :", ind_max_axe2, "\n")
+
+```
+
+# Question 8
+On produit un graphique du cercle des corrélations issu de l'analyse en composantes principales.<br>
+On extrait ensuite les coefficients de chargement associés aux axes principaux pour repérer, parmi toutes les variables, celles qui influencent le plus le premier et le deuxième axe.<br>
+Enfin, on examine le jeu de données standardisé pour identifier l'observation présentant la valeur la plus extrême pour chacune de ces variables déterminantes, ce qui permet d'associer les variables les plus contributives aux individus qui les illustrent le mieux.
+```{r cercle_correlations}
+# Représentation du cercle des corrélations pour les variables
+fviz_pca_var(acp_resultat, repel = TRUE, col.var = "contrib") +
+  labs(title = "Cercle des corrélations", x = "Dimension 1", y = "Dimension 2") +
+  theme(plot.title = element_text(hjust = 0.5))
 
 
+# Extraction des chargements (loadings) issus de l'ACP
+loadings <- acp_resultat$rotation
 
+# Identification des variables les plus contributives pour les axes 1 et 2
+var_PC1 <- names(which.max(abs(loadings[,1])))
+var_PC2 <- names(which.max(abs(loadings[,2])))
+cat("Variable la plus contributive pour PC1 :", var_PC1, "\n")
+cat("Variable la plus contributive pour PC2 :", var_PC2, "\n")
 
+# Récupération des individus extrêmes pour ces variables à partir du jeu de données standardisé
+ind_ext_PC1 <- which.max(abs(Data_centre_reduit[, var_PC1]))
+ind_ext_PC2 <- which.max(abs(Data_centre_reduit[, var_PC2]))
+cat("Individu extrême pour", var_PC1, ":", ind_ext_PC1, "\n")
+cat("Individu extrême pour", var_PC2, ":", ind_ext_PC2, "\n")
+```
+Ainsi, on constate que le poids total et le nombre d'anneaux sur la coquille sont les variables les plus étroitement liées à l'âge de l'ormeau. Pour estimer cet âge, il suffirait donc de mesurer ces deux caractéristiques et de construire un modèle de prédiction.<br>
+Par ailleurs, les individus 33 et 83, qui présentent des valeurs extrêmes pour ces variables, pourraient être considérés comme des outliers et éventuellement retirés de l'analyse afin de ne pas biaiser les résultats.
 
+# Question 9
+L’analyse révèle que d’autres variables, telles que le diamètre, la longueur ou encore le poids décortiqué, peuvent aussi contribuer de manière significative à la prédiction de l’âge. Même si le poids total reste la plus importante en dehors des anneaux, ces indicateurs supplémentaires permettraient d’élaborer un modèle de régression pour estimer l’âge de l’ormeau. <br>
+Toutefois, leur pouvoir prédictif étant moins élevé, la marge d’erreur risque d’être plus importante. Par ailleurs, certaines mesures, comme le poids décortiqué, nécessitent d’ouvrir l’ormeau, ce qui peut ne pas être souhaitable pour les chercheurs.
